@@ -1,0 +1,83 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+pip-wheel-metadata/
+
+# ── Virtual Environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# ── Data (large files — use DVC or cloud storage) ─────────────────────────────
+data/raw/
+data/processed/
+# Keep sample data for testing
+!data/sample/
+
+# ── Trained Models (large binary files) ───────────────────────────────────────
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.bin
+# Keep directory marker
+!models/.gitkeep
+
+# ── MLflow ────────────────────────────────────────────────────────────────────
+mlruns/
+mlartifacts/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Testing & Coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# ── Linting & Type Checking ───────────────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/build/
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker-data/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Reports (generated PDFs) ─────────────────────────────────────────────────
+reports/generated/
