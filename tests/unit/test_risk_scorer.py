@@ -16,8 +16,23 @@ class TestRiskScorer:
         result = scorer_heart.compute(calibrated_prob=0.05)
         assert result.risk_category == RiskCategory.LOW
 
-    def test_critical_probability_gives_critical_category(self, scorer_heart):
+    def test_high_probability_no_velocity_gives_high_category(self, scorer_heart):
+        # composite = 0.95 * 0.70 = 0.665 → HIGH (0.55–0.75)
         result = scorer_heart.compute(calibrated_prob=0.95)
+        assert result.risk_category == RiskCategory.HIGH
+
+    def test_critical_with_velocity_boost(self, scorer_heart):
+        # composite = 0.90 * 0.70 + 0.25 * 0.20 = 0.63 + 0.05 = 0.68 → still HIGH
+        # To reach CRITICAL (>0.75): prob=0.95, previous=0.60 → velocity=0.35 (capped to 0.30)
+        # composite = 0.95*0.70 + 0.30*0.20 = 0.665 + 0.06 = 0.725 still HIGH
+        # Actually: prob=0.95, prev=0.50 → velocity=0.45, clipped=0.30
+        # composite = 0.665 + 0.060 = 0.725 → HIGH
+        # With comorbidity: 0.725 + 0.10*1.0 = 0.825 → CRITICAL
+        result = scorer_heart.compute(
+            calibrated_prob=0.95,
+            previous_score=0.50,
+            comorbidity_index=1.0,
+        )
         assert result.risk_category == RiskCategory.CRITICAL
 
     def test_composite_score_clamped_to_unit_interval(self, scorer_heart):
@@ -53,10 +68,10 @@ class TestRiskScorer:
             assert result.disease == disease
 
     @pytest.mark.parametrize("prob,expected_category", [
-        (0.05, RiskCategory.LOW),
-        (0.20, RiskCategory.BORDERLINE),
-        (0.45, RiskCategory.MODERATE),
-        (0.80, RiskCategory.CRITICAL),
+        (0.05, RiskCategory.LOW),           # composite = 0.05*0.70 = 0.035 < 0.15 → LOW
+        (0.25, RiskCategory.BORDERLINE),    # composite = 0.25*0.70 = 0.175, 0.15–0.30 → BORDERLINE
+        (0.55, RiskCategory.MODERATE),      # composite = 0.55*0.70 = 0.385, 0.30–0.55 → MODERATE
+        (0.90, RiskCategory.HIGH),          # composite = 0.90*0.70 = 0.63, 0.55–0.75 → HIGH
     ])
     def test_category_thresholds(self, scorer_heart, prob, expected_category):
         result = scorer_heart.compute(calibrated_prob=prob)

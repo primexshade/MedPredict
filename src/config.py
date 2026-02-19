@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     prediction_cache_ttl_seconds: int = 300  # 5 minutes
 
     # ── JWT Authentication ────────────────────────────────────────────────────
-    jwt_secret: str = Field(default="change-me-in-production", min_length=32)
+    jwt_secret: str = Field(default="change-me-in-production-replace-this!!", min_length=32)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7

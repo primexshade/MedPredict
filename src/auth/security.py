@@ -3,6 +3,8 @@ src/auth/security.py — JWT authentication and password hashing.
 
 Implements access + refresh token pair with Redis-backed blacklisting
 for secure logout without server-side session state.
+
+Note: Uses bcrypt directly (passlib 1.7 is incompatible with bcrypt 5.x).
 """
 from __future__ import annotations
 
@@ -10,14 +12,13 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from src.config import get_settings
 
 settings = get_settings()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 
 
 class TokenPayload(BaseModel):
@@ -38,11 +39,16 @@ class TokenPair(BaseModel):
 
 def hash_password(plain: str) -> str:
     """Bcrypt hash with cost factor 12 (recommended for 2025+ hardware)."""
-    return pwd_context.hash(plain)
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(plain.encode("utf-8"), salt)
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    try:
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def create_token(

@@ -17,6 +17,7 @@ import pandas as pd
 from imblearn.over_sampling import BorderlineSMOTE, SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.experimental import enable_iterative_imputer  # noqa: F401 — must be first
 from sklearn.impute import IterativeImputer, SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
