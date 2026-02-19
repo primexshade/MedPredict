@@ -1,0 +1,99 @@
+# Docker Compose — Local Development Stack
+# Brings up: API, Frontend, PostgreSQL, Redis, MLflow
+version: "3.9"
+
+services:
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://dp_user:dp_password@postgres:5432/disease_prediction
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      JWT_SECRET: local-dev-secret-change-in-prod
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ../models:/app/models   # Mount local model files
+      - ../data:/app/data
+    restart: unless-stopped
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - api
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: disease_prediction
+      POSTGRES_USER: dp_user
+      POSTGRES_PASSWORD: dp_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dp_user -d disease_prediction"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ── MLflow Tracking Server ────────────────────────────────────────────────────
+  mlflow:
+    image: python:3.11-slim
+    command: >
+      sh -c "pip install mlflow psycopg2-binary -q &&
+             mlflow server
+               --backend-store-uri postgresql://dp_user:dp_password@postgres:5432/mlflow
+               --default-artifact-root /mlflow/artifacts
+               --host 0.0.0.0
+               --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Celery Worker (async tasks) ────────────────────────────────────────────────
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: celery -A src.workers.tasks worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: postgresql://dp_user:dp_password@postgres:5432/disease_prediction
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    depends_on:
+      - redis
+      - postgres
+
+volumes:
+  postgres_data:
+  mlflow_data:
