@@ -3,6 +3,20 @@
 version: "3.9"
 
 services:
+  # ── Alembic migrations (init container — runs once, then exits) ──────────────
+  alembic-migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dp_user:dp_password@postgres:5432/disease_prediction
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"  # exit after migration; do not loop
+
   # ── Backend API ─────────────────────────────────────────────────────────────
   api:
     build:
@@ -11,7 +25,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://dp_user:dp_password@postgres:5432/disease_prediction
+      DATABASE_URL: postgresql+asyncpg://dp_user:dp_password@postgres:5432/disease_prediction
       REDIS_URL: redis://redis:6379/0
       MLFLOW_TRACKING_URI: http://mlflow:5000
       JWT_SECRET: local-dev-secret-change-in-prod
@@ -21,6 +35,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      alembic-migrate:
+        condition: service_completed_successfully
     volumes:
       - ../models:/app/models   # Mount local model files
       - ../data:/app/data
