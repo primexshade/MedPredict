@@ -19,6 +19,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAW_DIR="$SCRIPT_DIR/../data/raw"
 mkdir -p "$RAW_DIR"
 
+# Prefer the venv python so pandas is available
+PYTHON="${SCRIPT_DIR}/../.venv/bin/python"
+if [ ! -f "$PYTHON" ]; then
+  PYTHON="$(which python3)"
+fi
+
 echo "📥 Downloading datasets to: $RAW_DIR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -60,22 +66,20 @@ curl -fsSL \
   -o "$RAW_DIR/breast_cancer_raw.csv"
 
 # WDBC has 32 columns: ID, Diagnosis, then 30 numeric features
-python3 - <<'PYEOF'
-import pandas as pd
+RAW_DIR="$RAW_DIR" "$PYTHON" << 'PYEOF'
+import os, pandas as pd
 from pathlib import Path
 
-raw = pd.read_csv(
-    Path(__file__).parent.parent / "data/raw/breast_cancer_raw.csv",
-    header=None
-)
-# Name columns
+raw_dir = Path(os.environ["RAW_DIR"])
+raw = pd.read_csv(raw_dir / "breast_cancer_raw.csv", header=None)
 feature_names = ["radius", "texture", "perimeter", "area", "smoothness",
                  "compactness", "concavity", "concave_points", "symmetry", "fractal_dimension"]
 cols = ["id", "diagnosis"]
 for stat in ["mean", "se", "worst"]:
     cols += [f"{f}_{stat}" for f in feature_names]
 raw.columns = cols
-raw.to_csv(Path(__file__).parent.parent / "data/raw/breast_cancer.csv", index=False)
+raw.to_csv(raw_dir / "breast_cancer.csv", index=False)
+print("  python: breast_cancer.csv written")
 PYEOF
 echo "  ✓ breast_cancer.csv"
 

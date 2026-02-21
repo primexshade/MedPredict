@@ -120,6 +120,10 @@ def load_diabetes() -> pd.DataFrame:
     df = pd.read_csv(path)
     df.columns = df.columns.str.lower()
 
+    # Normalize 'outcome' → 'target' (PIMA dataset uses 'outcome')
+    if "outcome" in df.columns and "target" not in df.columns:
+        df = df.rename(columns={"outcome": "target"})
+
     for col, dtype in DIABETES_COLUMNS.items():
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").astype(dtype)

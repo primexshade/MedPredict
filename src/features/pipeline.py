@@ -46,7 +46,7 @@ FEATURE_CONFIG: dict[DiseaseKey, dict] = {
             "insulin", "bmi", "diabetespedigreefunction", "age",
         ],
         "categorical": [],
-        "target": "outcome",
+        "target": "target",  # renamed from outcome in load_diabetes()
         "use_smote": True,
         "imbalance_ratio_threshold": 2,
     },
@@ -62,7 +62,8 @@ FEATURE_CONFIG: dict[DiseaseKey, dict] = {
             "age", "bp", "sg", "al", "su", "bgr", "bu", "sc",
             "sod", "pot", "hemo", "pcv", "wc", "rc",
         ],
-        "categorical": ["rbc", "pc", "pcc", "ba", "htn", "dm", "cad", "appet", "pe", "ane"],
+        # rbc/pc/pcc/ba exist in full UCI CKD; our generated sample only has:
+        "categorical": ["htn", "dm", "cad", "appet", "pe", "ane"],
         "target": "target",
         "use_smote": False,
         "imbalance_ratio_threshold": None,
@@ -169,6 +170,7 @@ def build_full_pipeline(
     df: pd.DataFrame,
     use_smote: bool | None = None,
     use_standard_scaler: bool = False,
+    y: "pd.Series | None" = None,
 ) -> ImbPipeline:
     """
     Build the complete imbalanced-learn Pipeline:
@@ -196,8 +198,13 @@ def build_full_pipeline(
 
     if apply_smote:
         # Check imbalance ratio before applying SMOTE
-        target = config["target"]
-        class_counts = df[target].value_counts()
+        # y may be passed directly; fallback to reading target col from df
+        if y is not None:
+            import pandas as _pd
+            class_counts = _pd.Series(y).value_counts()
+        else:
+            target = config["target"]
+            class_counts = df[target].value_counts()
         ratio = class_counts.max() / class_counts.min()
         threshold = config.get("imbalance_ratio_threshold", 2)
 

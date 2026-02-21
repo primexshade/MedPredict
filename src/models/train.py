@@ -101,7 +101,7 @@ def _make_objective(
 
     def objective(trial: optuna.Trial) -> float:
         model = MODEL_BUILDERS[disease](trial, scale_pos_weight)
-        pipeline = build_full_pipeline(disease, model, X_train)
+        pipeline = build_full_pipeline(disease, model, X_train, y=y_train)
 
         cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
         scores = []
@@ -207,7 +207,7 @@ def train_disease_model(
         best_model = MODEL_BUILDERS[disease](
             optuna.trial.FixedTrial(study.best_params), scale_pos_weight
         )
-        pipeline = build_full_pipeline(disease, best_model, X_outer_tr)
+        pipeline = build_full_pipeline(disease, best_model, X_outer_tr, y=y_outer_tr)
         pipeline.fit(X_outer_tr, y_outer_tr)
         y_proba = pipeline.predict_proba(X_outer_val)[:, 1]
         fold_auc_pr = average_precision_score(y_outer_val, y_proba)
@@ -235,17 +235,18 @@ def train_disease_model(
     final_model = MODEL_BUILDERS[disease](
         optuna.trial.FixedTrial(best_params), scale_pos_weight
     )
-    pipeline = build_full_pipeline(disease, final_model, X_train)
+    pipeline = build_full_pipeline(disease, final_model, X_train, y=y_train)
     pipeline.fit(X_train, y_train)
 
-    # Calibrate probabilities using isotonic regression on validation set
-    # Note: CalibratedClassifierCV wraps the whole pipeline
+    # Calibrate probabilities using isotonic regression via cross-validation
+    # cv=5 means CalibratedClassifierCV fits the pipeline 5 times on subsets
+    # of X_train to generate calibrated probability estimates.
     calibrated = CalibratedClassifierCV(
-        estimator=pipeline,
+        estimator=build_full_pipeline(disease, final_model, X_train, y=y_train),
         method="isotonic",
-        cv="prefit",
+        cv=5,
     )
-    calibrated.fit(X_val, y_val)
+    calibrated.fit(X_train, y_train)
 
     # 6. Final evaluation on held-out test set
     y_proba_test = calibrated.predict_proba(X_test)[:, 1]
