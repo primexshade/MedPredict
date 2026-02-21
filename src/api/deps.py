@@ -8,7 +8,10 @@ Centralizes:
 """
 from __future__ import annotations
 
+import logging
 from typing import Annotated, Any
+
+logger = logging.getLogger(__name__)
 
 import redis.asyncio as aioredis
 from fastapi import Depends, HTTPException, Security, status
@@ -25,15 +28,33 @@ bearer_scheme = HTTPBearer(auto_error=True)
 _redis_pool: aioredis.Redis | None = None
 
 
-async def get_redis() -> aioredis.Redis:
-    """Return the shared async Redis connection pool."""
+class _NoOpRedis:
+    """Drop-in Redis stub used when Redis is not available (local dev)."""
+
+    async def get(self, _key: str) -> None:
+        return None
+
+    async def setex(self, _key: str, _ttl: int, _val: str) -> None:
+        pass
+
+
+async def get_redis() -> Any:
+    """Return the shared async Redis connection pool, or a no-op stub if Redis is unreachable."""
     global _redis_pool
     if _redis_pool is None:
-        _redis_pool = aioredis.from_url(
-            str(settings.redis_url),
-            encoding="utf-8",
-            decode_responses=True,
-        )
+        try:
+            pool = aioredis.from_url(
+                str(settings.redis_url),
+                encoding="utf-8",
+                decode_responses=True,
+                socket_connect_timeout=1,
+            )
+            # Ping to verify connection
+            await pool.ping()
+            _redis_pool = pool
+        except Exception as exc:
+            logger.warning("Redis not available (%s) — using no-op cache stub", exc)
+            _redis_pool = _NoOpRedis()  # type: ignore[assignment]
     return _redis_pool
 
 
