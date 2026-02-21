@@ -53,27 +53,34 @@ HEART_CONSTRAINTS: dict[str, tuple[float, float]] = {
 
 def load_heart_disease(source: str = "combined") -> pd.DataFrame:
     """
-    Load the UCI Heart Disease dataset (Cleveland + Hungarian + Switzerland).
+    Load the Heart Disease dataset.
 
-    Args:
-        source: 'combined' (default), 'cleveland', 'hungarian', 'switzerland'
+    Priority:
+      1. data/raw/heart_kaggle.csv  — johnsmith88/heart-disease-dataset (1 025 rows)
+      2. data/raw/heart_{source}.csv — legacy UCI combined / cleveland files
+      3. data/sample/heart_{source}.csv — fallback sample
 
     Returns:
         Validated DataFrame with standardized column names.
     """
-    filename = f"heart_{source}.csv"
-    path = RAW_DIR / filename
-
-    if not path.exists():
-        sample_path = SAMPLE_DIR / filename
-        if sample_path.exists():
-            logger.warning("Raw data not found; using sample data: %s", sample_path)
-            path = sample_path
-        else:
-            raise FileNotFoundError(
-                f"Dataset not found: {path}\n"
-                "Run: bash scripts/download_datasets.sh"
-            )
+    # Prefer the new Kaggle dataset first
+    kaggle_path = RAW_DIR / "heart_kaggle.csv"
+    if kaggle_path.exists():
+        path = kaggle_path
+        logger.info("Using Kaggle heart dataset: %s", path)
+    else:
+        filename = f"heart_{source}.csv"
+        path = RAW_DIR / filename
+        if not path.exists():
+            sample_path = SAMPLE_DIR / filename
+            if sample_path.exists():
+                logger.warning("Raw data not found; using sample data: %s", sample_path)
+                path = sample_path
+            else:
+                raise FileNotFoundError(
+                    f"Dataset not found: {path}\n"
+                    "Run: bash scripts/download_datasets.sh"
+                )
 
     df = pd.read_csv(path)
     df = df.rename(columns=str.lower)
@@ -83,7 +90,7 @@ def load_heart_disease(source: str = "combined") -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").astype(dtype)
 
-    # Binarize target (original dataset uses 0-4, where >0 = disease)
+    # Binarize target (original dataset uses 0-4; Kaggle version already binary)
     if df["target"].max() > 1:
         df["target"] = (df["target"] > 0).astype(int)
 
@@ -140,14 +147,31 @@ def load_diabetes() -> pd.DataFrame:
 # ─── Breast Cancer ────────────────────────────────────────────────────────────
 
 def load_breast_cancer() -> pd.DataFrame:
-    """Load the Wisconsin Breast Cancer (Diagnostic) dataset."""
-    path = _resolve_path("breast_cancer.csv")
+    """
+    Load the Breast Cancer (Diagnostic) dataset.
+
+    Priority:
+      1. data/raw/cancer_kaggle.csv — erdemtaha/cancer-data (569 rows, WDBC format)
+      2. data/raw/breast_cancer.csv — legacy file
+      3. data/sample/breast_cancer.csv — fallback sample
+    """
+    kaggle_path = RAW_DIR / "cancer_kaggle.csv"
+    if kaggle_path.exists():
+        path = kaggle_path
+        logger.info("Using Kaggle cancer dataset: %s", path)
+    else:
+        path = _resolve_path("breast_cancer.csv")
+
     df = pd.read_csv(path)
-    df.columns = df.columns.str.lower().str.replace(" ", "_")
+    # Normalize column names: lowercase + spaces → underscores
+    df.columns = df.columns.str.lower().str.strip().str.replace(" ", "_")
+
+    # Drop artifact columns
+    df = df.drop(columns=[c for c in df.columns if c.startswith("unnamed")], errors="ignore")
 
     # WDBC: diagnosis M=malignant(1), B=benign(0)
     if "diagnosis" in df.columns:
-        df["target"] = (df["diagnosis"] == "M").astype(int)
+        df["target"] = (df["diagnosis"].str.upper() == "M").astype(int)
         df = df.drop(columns=["diagnosis", "id"], errors="ignore")
 
     logger.info("Loaded breast cancer dataset: %d rows, %d cols", *df.shape)
