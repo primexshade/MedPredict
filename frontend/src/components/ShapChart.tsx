@@ -1,17 +1,17 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import type { ShapContribution } from '../services/api'
+import type { TopFeature } from '../services/api'
 
 interface Props {
-    contributions: ShapContribution[]
+    contributions: TopFeature[]
 }
 
 export default function ShapChart({ contributions }: Props) {
     const data = contributions
         .slice(0, 10)
-        .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+        .sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value))
         .map((c) => ({
-            feature: c.feature,
-            value: parseFloat(c.value.toFixed(4)),
+            feature: c.feature.replace(/_/g, ' '),
+            value: parseFloat(Math.abs(c.shap_value).toFixed(4)),
             direction: c.direction,
         }))
 
@@ -44,7 +44,7 @@ export default function ShapChart({ contributions }: Props) {
                         {data.map((entry, idx) => (
                             <Cell
                                 key={idx}
-                                fill={entry.direction === 'increases' ? '#ef4444' : '#64748b'}
+                                fill={entry.direction === 'increases_risk' ? '#ef4444' : '#64748b'}
                             />
                         ))}
                     </Bar>

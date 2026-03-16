@@ -205,14 +205,19 @@ class PredictionEngine:
         """Initialize SHAP explainers from background data sampled from training sets."""
         try:
             import shap
-            from src.data.load import load_heart, load_diabetes, load_cancer, load_kidney
+            from src.data.load import (
+                load_heart_disease,
+                load_diabetes,
+                load_breast_cancer,
+                load_kidney_disease,
+            )
             from src.features.engineering import apply_feature_engineering
 
             loaders = {
-                "heart": load_heart,
+                "heart": load_heart_disease,
                 "diabetes": load_diabetes,
-                "cancer": load_cancer,
-                "kidney": load_kidney,
+                "cancer": load_breast_cancer,
+                "kidney": load_kidney_disease,
             }
 
             for disease, loader in loaders.items():
@@ -240,15 +245,28 @@ class PredictionEngine:
                             bg_transformed = proc.transform(background)
                             feature_names = self._get_feature_names(proc, background)
                             bg_df = pd.DataFrame(bg_transformed, columns=feature_names)
-                            explainer = shap.TreeExplainer(
-                                inner,
-                                data=bg_df,
-                                feature_perturbation="tree_path_dependent",
-                            )
-                            self._explainers[disease] = explainer
-                            self._feature_names[disease] = feature_names
-                            self._background_data[disease] = bg_df
-                            logger.info("✓ SHAP explainer ready for %s (%d features)", disease, len(feature_names))
+                            # Try interventional first (works with any background size),
+                            # fall back to no-background if that also fails.
+                            for perturbation, bg in [
+                                ("interventional", bg_df),
+                                ("tree_path_dependent", None),
+                            ]:
+                                try:
+                                    explainer = shap.TreeExplainer(
+                                        inner,
+                                        data=bg if perturbation == "interventional" else None,
+                                        feature_perturbation=perturbation,
+                                    )
+                                    self._explainers[disease] = explainer
+                                    self._feature_names[disease] = feature_names
+                                    self._background_data[disease] = bg_df
+                                    logger.info(
+                                        "✓ SHAP explainer ready for %s (%d features, %s)",
+                                        disease, len(feature_names), perturbation,
+                                    )
+                                    break
+                                except Exception as shap_exc:
+                                    logger.debug("SHAP mode %s failed for %s: %s", perturbation, disease, shap_exc)
                 except Exception as exc:
                     logger.warning("Could not setup SHAP for %s: %s", disease, exc)
         except Exception as exc:

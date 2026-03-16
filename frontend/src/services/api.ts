@@ -30,22 +30,28 @@ api.interceptors.response.use(
 )
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-export interface ShapContribution {
+// Matches actual API response fields from /predict/{disease}
+export interface TopFeature {
     feature: string
     value: number
-    direction: 'increases' | 'decreases'
+    shap_value: number
+    direction: 'increases_risk' | 'decreases_risk'
+    rank: number
 }
 
 export interface PredictionResponse {
+    patient_id: string | null
     disease: string
-    probability: number
+    risk_score: number
+    calibrated_probability: number
     risk_category: 'LOW' | 'BORDERLINE' | 'MODERATE' | 'HIGH' | 'CRITICAL'
-    composite_score: number
-    confidence_interval: [number, number]
-    shap_contributions: ShapContribution[]
-    plain_english_summary: string
+    confidence_interval: [number, number] | null
     velocity: number | null
-    clinical_action: { action: string; urgency: string }
+    top_features: TopFeature[]
+    plain_english_summary: string
+    clinical_action: { action: string; timeframe?: string; urgency: string }
+    model_version?: string
+    cached?: boolean
 }
 
 export interface PatientOut {
@@ -81,6 +87,13 @@ export const predictAPI = {
         api.post<PredictionResponse>('/predict/heart', payload),
     diabetes: (payload: Record<string, number | string>) =>
         api.post<PredictionResponse>('/predict/diabetes', payload),
+    cancer: (payload: Record<string, number | string>) =>
+        api.post<PredictionResponse>('/predict/cancer', payload),
+    kidney: (payload: Record<string, number | string>) =>
+        api.post<PredictionResponse>('/predict/kidney', payload),
+    // Generic dispatcher used by Predict.tsx
+    predict: (disease: string, payload: Record<string, number | string>) =>
+        api.post<PredictionResponse>(`/predict/${disease}`, payload),
 }
 
 export const analyticsAPI = {
