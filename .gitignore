@@ -81,3 +81,14 @@ logs/
 
 # ── Reports (generated PDFs) ─────────────────────────────────────────────────
 reports/generated/
+
+# ── Backup files (from data augmentation script) ─────────────────────────────
+*.bak
+*.csv.bak
+*.backup
+
+# ── OS & temp files ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.tmp
+/tmp/

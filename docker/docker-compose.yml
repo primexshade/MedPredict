@@ -1,9 +1,5 @@
-# Docker Compose — Local Development Stack
-# Brings up: API, Frontend, PostgreSQL, Redis, MLflow
-version: "3.9"
-
 services:
-  # ── Alembic migrations (init container — runs once, then exits) ──────────────
+  # ── Alembic migrations (init container — runs once then exits) ────────────────
   alembic-migrate:
     build:
       context: ..
@@ -12,12 +8,14 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://dp_user:dp_password@postgres:5432/disease_prediction
       ENVIRONMENT: development
+      MLFLOW_TRACKING_URI: file:///app/mlruns
+      JWT_SECRET: local-dev-secret-change-in-prod
     depends_on:
       postgres:
         condition: service_healthy
-    restart: "no"  # exit after migration; do not loop
+    restart: "no"
 
-  # ── Backend API ─────────────────────────────────────────────────────────────
+  # ── Backend API ───────────────────────────────────────────────────────────────
   api:
     build:
       context: ..
@@ -27,7 +25,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://dp_user:dp_password@postgres:5432/disease_prediction
       REDIS_URL: redis://redis:6379/0
-      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_TRACKING_URI: file:///app/mlruns
       JWT_SECRET: local-dev-secret-change-in-prod
       ENVIRONMENT: development
     depends_on:
@@ -38,23 +36,21 @@ services:
       alembic-migrate:
         condition: service_completed_successfully
     volumes:
-      - ../models:/app/models   # Mount local model files
-      - ../data:/app/data
+      - ../mlruns:/app/mlruns    # trained models from local training
+      - ../data/raw:/app/data/raw
     restart: unless-stopped
 
-  # ── Frontend ─────────────────────────────────────────────────────────────────
+  # ── Frontend ──────────────────────────────────────────────────────────────────
   frontend:
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend
     ports:
       - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:8000
     depends_on:
       - api
 
-  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  # ── PostgreSQL ────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     environment:
@@ -78,38 +74,5 @@ services:
       - "6379:6379"
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
 
-  # ── MLflow Tracking Server ────────────────────────────────────────────────────
-  mlflow:
-    image: python:3.11-slim
-    command: >
-      sh -c "pip install mlflow psycopg2-binary -q &&
-             mlflow server
-               --backend-store-uri postgresql://dp_user:dp_password@postgres:5432/mlflow
-               --default-artifact-root /mlflow/artifacts
-               --host 0.0.0.0
-               --port 5000"
-    ports:
-      - "5000:5000"
-    volumes:
-      - mlflow_data:/mlflow/artifacts
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # ── Celery Worker (async tasks) ────────────────────────────────────────────────
-  worker:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    command: celery -A src.workers.tasks worker --loglevel=info --concurrency=4
-    environment:
-      DATABASE_URL: postgresql://dp_user:dp_password@postgres:5432/disease_prediction
-      REDIS_URL: redis://redis:6379/0
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-    depends_on:
-      - redis
-      - postgres
-
 volumes:
   postgres_data:
-  mlflow_data:

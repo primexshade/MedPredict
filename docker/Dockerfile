@@ -34,8 +34,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application source
 COPY src/ ./src/
-COPY models/ ./models/
-COPY data/sample/ ./data/sample/
+COPY data/raw/ ./data/raw/
 
 # Set ownership
 RUN chown -R appuser:appgroup /app
