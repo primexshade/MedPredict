@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/781717425229301094/a1a17e001c6b48d09fb429d58d51daa1/artifacts
+end_time: 1773673841184
+entry_point_name: ''
+experiment_id: '781717425229301094'
+lifecycle_stage: active
+run_id: a1a17e001c6b48d09fb429d58d51daa1
+run_name: upset-koi-678
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773673837703
+status: 3
+tags: []
+user_id: aryantiwari

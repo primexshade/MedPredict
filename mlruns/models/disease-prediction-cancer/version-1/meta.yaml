@@ -1,0 +1,15 @@
+creation_timestamp: 1771692896299
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1771692896299
+model_id: m-f0788e15a1944e04a565a334a9595aaf
+name: disease-prediction-cancer
+run_id: a15245bf1dfb40a79a9fc2f619db6fcd
+run_link: null
+source: models:/m-f0788e15a1944e04a565a334a9595aaf
+status: READY
+status_message: null
+storage_location: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/623236923670761667/models/m-f0788e15a1944e04a565a334a9595aaf/artifacts
+user_id: null
+version: 1

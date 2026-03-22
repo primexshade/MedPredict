@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/803319786783120824/0aa62aaf82664b7e89d04e2c3b7da3ae/artifacts
+end_time: 1771698690670
+entry_point_name: ''
+experiment_id: '803319786783120824'
+lifecycle_stage: active
+run_id: 0aa62aaf82664b7e89d04e2c3b7da3ae
+run_name: redolent-snipe-472
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771698687171
+status: 3
+tags: []
+user_id: aryantiwari

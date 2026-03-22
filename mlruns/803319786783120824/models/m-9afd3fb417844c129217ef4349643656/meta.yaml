@@ -1,0 +1,10 @@
+artifact_location: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/803319786783120824/models/m-9afd3fb417844c129217ef4349643656/artifacts
+creation_timestamp: 1771692830685
+experiment_id: '803319786783120824'
+last_updated_timestamp: 1771692833610
+model_id: m-9afd3fb417844c129217ef4349643656
+model_type: null
+name: model
+source_run_id: b70d52a966794466a4423b033c590dc1
+status: 2
+status_message: null

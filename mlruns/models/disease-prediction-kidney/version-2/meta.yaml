@@ -1,0 +1,15 @@
+creation_timestamp: 1773673841171
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1773673841171
+model_id: m-e53d6786a1f149d593b1d9cc978c0fb9
+name: disease-prediction-kidney
+run_id: a1a17e001c6b48d09fb429d58d51daa1
+run_link: null
+source: models:/m-e53d6786a1f149d593b1d9cc978c0fb9
+status: READY
+status_message: null
+storage_location: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/781717425229301094/models/m-e53d6786a1f149d593b1d9cc978c0fb9/artifacts
+user_id: null
+version: 2

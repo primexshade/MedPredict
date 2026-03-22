@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/803319786783120824/b70d52a966794466a4423b033c590dc1/artifacts
+end_time: 1771692833625
+entry_point_name: ''
+experiment_id: '803319786783120824'
+lifecycle_stage: active
+run_id: b70d52a966794466a4423b033c590dc1
+run_name: defiant-crow-862
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771692830667
+status: 3
+tags: []
+user_id: aryantiwari

@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/781717425229301094/596aa49214214e14bf5c08e5cc378501/artifacts
+end_time: 1771693308640
+entry_point_name: ''
+experiment_id: '781717425229301094'
+lifecycle_stage: active
+run_id: 596aa49214214e14bf5c08e5cc378501
+run_name: beautiful-shrimp-960
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771693305861
+status: 3
+tags: []
+user_id: aryantiwari

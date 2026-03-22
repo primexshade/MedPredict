@@ -1,0 +1,15 @@
+creation_timestamp: 1771692869868
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1771692869868
+model_id: m-e2b7f6c67b324bcab98f77450184c229
+name: disease-prediction-diabetes
+run_id: e5314daf063a46869892d59503e56020
+run_link: null
+source: models:/m-e2b7f6c67b324bcab98f77450184c229
+status: READY
+status_message: null
+storage_location: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/702882378493180396/models/m-e2b7f6c67b324bcab98f77450184c229/artifacts
+user_id: null
+version: 1

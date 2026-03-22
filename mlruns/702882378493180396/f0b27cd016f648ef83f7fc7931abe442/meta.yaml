@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/702882378493180396/f0b27cd016f648ef83f7fc7931abe442/artifacts
+end_time: 1773673700092
+entry_point_name: ''
+experiment_id: '702882378493180396'
+lifecycle_stage: active
+run_id: f0b27cd016f648ef83f7fc7931abe442
+run_name: colorful-gnat-281
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773673695751
+status: 3
+tags: []
+user_id: aryantiwari

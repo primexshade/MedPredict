@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/623236923670761667/a15245bf1dfb40a79a9fc2f619db6fcd/artifacts
+end_time: 1771692896306
+entry_point_name: ''
+experiment_id: '623236923670761667'
+lifecycle_stage: active
+run_id: a15245bf1dfb40a79a9fc2f619db6fcd
+run_name: fun-mouse-532
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771692893980
+status: 3
+tags: []
+user_id: aryantiwari

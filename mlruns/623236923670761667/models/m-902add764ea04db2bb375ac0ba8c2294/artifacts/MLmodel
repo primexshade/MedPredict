@@ -1,0 +1,23 @@
+artifact_path: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/623236923670761667/models/m-902add764ea04db2bb375ac0ba8c2294/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.7
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.9.0
+model_id: m-902add764ea04db2bb375ac0ba8c2294
+model_size_bytes: 5503561
+model_uuid: m-902add764ea04db2bb375ac0ba8c2294
+prompts: null
+run_id: 1595aabe81ce4e0380bbcff1f29f0ea8
+utc_time_created: '2026-02-21 18:33:42.101417'

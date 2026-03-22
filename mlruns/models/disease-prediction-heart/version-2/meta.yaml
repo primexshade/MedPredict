@@ -1,0 +1,15 @@
+creation_timestamp: 1771698690659
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1771698690659
+model_id: m-d2c46b26d44b4143af91146fc2a1eeb9
+name: disease-prediction-heart
+run_id: 0aa62aaf82664b7e89d04e2c3b7da3ae
+run_link: null
+source: models:/m-d2c46b26d44b4143af91146fc2a1eeb9
+status: READY
+status_message: null
+storage_location: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/803319786783120824/models/m-d2c46b26d44b4143af91146fc2a1eeb9/artifacts
+user_id: null
+version: 2

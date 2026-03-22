@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/aryantiwari/Documents/Disease Prediction/mlruns/623236923670761667/9fd83e049abd481dbf0e355143fe3767/artifacts
+end_time: 1773673779209
+entry_point_name: ''
+experiment_id: '623236923670761667'
+lifecycle_stage: active
+run_id: 9fd83e049abd481dbf0e355143fe3767
+run_name: resilient-slug-130
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773673775852
+status: 3
+tags: []
+user_id: aryantiwari
