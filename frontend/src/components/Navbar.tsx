@@ -12,10 +12,16 @@ export default function Navbar() {
     const navigate = useNavigate()
 
     const handleLogout = async () => {
-        try { await authAPI.logout() } catch { }
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        navigate('/login')
+        try {
+            await authAPI.logout()
+        } catch (error) {
+            console.warn('Logout API call failed:', error)
+            // Continue with local logout even if API fails
+        } finally {
+            localStorage.removeItem('access_token')
+            localStorage.removeItem('refresh_token')
+            navigate('/login')
+        }
     }
 
     return (

@@ -6,12 +6,14 @@ Provides get_db() FastAPI dependency for connection-per-request pattern.
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.config import get_settings
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Convert postgresql:// → postgresql+asyncpg:// for async driver
@@ -40,6 +42,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
             await session.commit()
-        except Exception:
+        except Exception as exc:
+            logger.error("Database transaction failed, rolling back: %s", exc)
             await session.rollback()
             raise

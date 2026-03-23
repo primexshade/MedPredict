@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../services/api'
+import { AxiosError } from 'axios'
 
 // Floating particle background
 function Particles() {
@@ -8,7 +9,7 @@ function Particles() {
         <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
             {Array.from({ length: 18 }).map((_, i) => (
                 <div
-                    key={i}
+                    key={`particle-${i}`}
                     style={{
                         position: 'absolute',
                         width: i % 3 === 0 ? 3 : 2,
@@ -47,8 +48,8 @@ function StatPill({ label, value, color }: { label: string; value: string; color
 
 export default function Login() {
     const navigate = useNavigate()
-    const [email, setEmail] = useState('admin@example.com')
-    const [password, setPassword] = useState('admin')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [mounted, setMounted] = useState(false)
@@ -64,8 +65,17 @@ export default function Login() {
             localStorage.setItem('access_token', data.access_token)
             localStorage.setItem('refresh_token', data.refresh_token)
             navigate('/')
-        } catch {
-            setError('Invalid credentials. Try admin@example.com / admin')
+        } catch (err) {
+            const axiosError = err as AxiosError<{ detail?: string }>
+            if (axiosError.response?.status === 401) {
+                setError('Invalid email or password')
+            } else if (axiosError.response?.status === 422) {
+                setError('Please enter a valid email address')
+            } else if (!navigator.onLine) {
+                setError('Network error. Please check your connection.')
+            } else {
+                setError(axiosError.response?.data?.detail || 'Server error. Please try again later.')
+            }
         } finally {
             setLoading(false)
         }
@@ -228,15 +238,15 @@ export default function Login() {
                     <div style={{
                         marginTop: 24,
                         padding: '12px 14px',
-                        background: 'rgba(0,212,200,0.05)',
-                        border: '1px solid rgba(0,212,200,0.15)',
+                        background: 'rgba(99,102,241,0.05)',
+                        border: '1px solid rgba(99,102,241,0.15)',
                         borderRadius: 10,
                         fontSize: '0.75rem',
                         color: '#8b9ab5',
                         textAlign: 'center',
                     }}>
-                        <span style={{ color: '#00d4c8' }}>Demo credentials: </span>
-                        admin@example.com / admin
+                        <span style={{ color: '#6366f1' }}>First time? </span>
+                        Default admin created on first run
                     </div>
                 </div>
             </div>

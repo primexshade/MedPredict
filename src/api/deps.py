@@ -8,6 +8,7 @@ Centralizes:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Annotated, Any
 
@@ -24,8 +25,9 @@ from src.db.session import get_db
 settings = get_settings()
 bearer_scheme = HTTPBearer(auto_error=True)
 
-# ── Redis Pool (singleton) ───────────────────────────────────────────────────
+# ── Redis Pool (singleton with lock) ─────────────────────────────────────────
 _redis_pool: aioredis.Redis | None = None
+_redis_lock = asyncio.Lock()
 
 
 class _NoOpRedis:
@@ -41,7 +43,17 @@ class _NoOpRedis:
 async def get_redis() -> Any:
     """Return the shared async Redis connection pool, or a no-op stub if Redis is unreachable."""
     global _redis_pool
-    if _redis_pool is None:
+    
+    # Fast path: pool already initialized
+    if _redis_pool is not None:
+        return _redis_pool
+    
+    # Thread-safe initialization
+    async with _redis_lock:
+        # Double-check after acquiring lock
+        if _redis_pool is not None:
+            return _redis_pool
+            
         try:
             pool = aioredis.from_url(
                 str(settings.redis_url),
@@ -52,9 +64,11 @@ async def get_redis() -> Any:
             # Ping to verify connection
             await pool.ping()
             _redis_pool = pool
+            logger.info("Redis connection established")
         except Exception as exc:
             logger.warning("Redis not available (%s) — using no-op cache stub", exc)
             _redis_pool = _NoOpRedis()  # type: ignore[assignment]
+            
     return _redis_pool
 
 

@@ -44,11 +44,25 @@ function RiskBadgeSmall({ category }: { category: string }) {
 }
 
 export default function Patients() {
-    const { data: apiPatients = [], isLoading } = useQuery({
+    const { data: apiPatients = [], isLoading, isError, error } = useQuery({
         queryKey: ['patients'],
         queryFn: () => patientsAPI.list().then((r) => r.data),
+        retry: 2,
     })
     const [search, setSearch] = useState('')
+
+    // Show error state if API call failed
+    if (isError) {
+        return (
+            <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⚠️</div>
+                <h2 style={{ color: '#ef4444', marginBottom: '8px' }}>Failed to load patients</h2>
+                <p style={{ color: '#8b9ab5' }}>
+                    {(error as Error)?.message || 'Could not connect to API.'}
+                </p>
+            </div>
+        )
+    }
 
     // Use demo data if no real patients yet
     const isDemo = apiPatients.length === 0 && !isLoading
