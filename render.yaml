@@ -1,0 +1,28 @@
+# Render Blueprint - Backend Deployment
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: medpredict-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false  # Set manually in dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '["https://medpredict.vercel.app"]'
+      - key: REDIS_URL
+        sync: false  # Optional, set if using Redis
+
+databases:
+  - name: medpredict-db
+    plan: free
+    databaseName: medpredict
+    user: medpredict_user
