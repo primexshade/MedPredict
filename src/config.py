@@ -9,7 +9,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn
+from pydantic import AnyHttpUrl, Field, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     cors_origins: list[AnyHttpUrl] = Field(default=["http://localhost:5173"])
 
     # ── Database ─────────────────────────────────────────────────────────────
-    database_url: PostgresDsn = Field(
-        default="postgresql://user:password@localhost:5432/disease_prediction"
+    # Supports PostgreSQL or SQLite (for local dev without Docker)
+    database_url: str = Field(
+        default="sqlite+aiosqlite:///./medpredict.db"
     )
 
     # ── Redis ────────────────────────────────────────────────────────────────

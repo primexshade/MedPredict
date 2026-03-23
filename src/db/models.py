@@ -3,6 +3,7 @@ src/db/models.py — SQLAlchemy ORM models for all database entities.
 
 Uses SQLAlchemy 2.0 declarative style with type annotations.
 Every table includes audit columns (created_at, updated_at).
+Supports both PostgreSQL and SQLite.
 """
 from __future__ import annotations
 
@@ -20,7 +21,6 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -44,7 +44,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -66,7 +66,7 @@ class Patient(Base):
     __tablename__ = "patients"
 
     id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     mrn: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     date_of_birth: Mapped[datetime | None] = mapped_column(DateTime)
@@ -74,7 +74,7 @@ class Patient(Base):
     ethnicity: Mapped[str | None] = mapped_column(String(100))
 
     primary_clinician_id: Mapped[str | None] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("users.id")
+        String(36), ForeignKey("users.id")
     )
     primary_clinician: Mapped["User | None"] = relationship(back_populates="patients")
     predictions: Mapped[list["Prediction"]] = relationship(back_populates="patient")
@@ -86,10 +86,10 @@ class Prediction(Base):
     __tablename__ = "predictions"
 
     id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     patient_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), ForeignKey("patients.id"), nullable=False, index=True
+        String(36), ForeignKey("patients.id"), nullable=False, index=True
     )
     disease: Mapped[str] = mapped_column(String(50), nullable=False)  # heart|diabetes|cancer|kidney
     model_version: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -118,7 +118,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id"))
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"))
     action: Mapped[str] = mapped_column(String(100), nullable=False)  # predict|login|export
     resource: Mapped[str | None] = mapped_column(String(100))
     resource_id: Mapped[str | None] = mapped_column(String(255))

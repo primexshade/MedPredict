@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AxiosError } from 'axios'
 import { predictAPI } from '../services/api'
 import type { PredictionResponse, TopFeature } from '../services/api'
 import RiskGauge from '../components/RiskGauge'
@@ -84,18 +85,32 @@ const DISEASE_CONFIG: Record<DiseaseTab, { label: string; icon: string; fields: 
     kidney: { label: 'Kidney', icon: '⬠', fields: KIDNEY_FIELDS },
 }
 
+// Type for API validation error detail
+interface ValidationErrorDetail {
+    loc?: (string | number)[]
+    msg?: string
+    type?: string
+}
+
 // ── Helper: extract readable error message ────────────────────────────────────
 function extractError(err: unknown): string {
-    const ax = err as { response?: { data?: { detail?: unknown } }; message?: string }
-    const detail = ax?.response?.data?.detail
-    if (typeof detail === 'string') return detail
-    if (Array.isArray(detail)) {
-        // FastAPI 422 detail is an array of validation error objects
-        return detail.map((d: { loc?: string[]; msg?: string }) =>
-            `${d.loc?.slice(-1)[0] ?? 'field'}: ${d.msg ?? 'invalid'}`
-        ).join(', ')
+    if (err instanceof AxiosError) {
+        const detail = err.response?.data?.detail
+        if (typeof detail === 'string') return detail
+        if (Array.isArray(detail)) {
+            // FastAPI 422 detail is an array of validation error objects
+            return (detail as ValidationErrorDetail[]).map((d) =>
+                `${d.loc?.slice(-1)[0] ?? 'field'}: ${d.msg ?? 'invalid'}`
+            ).join(', ')
+        }
+        if (err.response?.status === 401) {
+            return 'Session expired. Please log in again.'
+        }
+        if (err.response?.status === 503) {
+            return 'ML model not loaded. Please try again.'
+        }
     }
-    return ax?.message ?? 'Prediction failed. Check that the API is running.'
+    return (err as Error)?.message ?? 'Prediction failed. Check that the API is running.'
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

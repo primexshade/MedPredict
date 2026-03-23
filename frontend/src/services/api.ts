@@ -1,9 +1,22 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
+
+// ── Auth Event for Redirect ─────────────────────────────────────────────────
+// Custom event to trigger logout redirect without importing Router
+const AUTH_LOGOUT_EVENT = 'auth:logout'
+
+export const triggerAuthLogout = () => {
+    window.dispatchEvent(new CustomEvent(AUTH_LOGOUT_EVENT))
+}
+
+export const onAuthLogout = (callback: () => void) => {
+    window.addEventListener(AUTH_LOGOUT_EVENT, callback)
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, callback)
+}
 
 // ── Axios Instance ────────────────────────────────────────────────────────────
 export const api = axios.create({
     baseURL: '/api/v1',
-    timeout: 30_000,
+    timeout: 15_000,
     headers: { 'Content-Type': 'application/json' },
 })
 
@@ -16,14 +29,15 @@ api.interceptors.request.use((config) => {
     return config
 })
 
-// On 401 → clear tokens and redirect to login
+// On 401 → clear tokens and trigger auth logout event
 api.interceptors.response.use(
     (res) => res,
-    (error) => {
+    (error: AxiosError) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('access_token')
             localStorage.removeItem('refresh_token')
-            window.location.href = '/login'
+            // Use custom event instead of window.location to preserve React state
+            triggerAuthLogout()
         }
         return Promise.reject(error)
     },

@@ -42,12 +42,26 @@ const TOOLTIP_STYLE = {
 }
 
 export default function Analytics() {
-    const { data: rulesData } = useQuery({
+    const { data: rulesData, isLoading, isError, error } = useQuery({
         queryKey: ['comorbidity-rules'],
         queryFn: () => analyticsAPI.comorbidityRules().then((r) => r.data),
+        retry: 2,
     })
 
     const rules = rulesData?.rules ?? []
+
+    // Show error state if API call failed
+    if (isError) {
+        return (
+            <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⚠️</div>
+                <h2 style={{ color: '#ef4444', marginBottom: '8px' }}>Failed to load analytics</h2>
+                <p style={{ color: '#8b9ab5' }}>
+                    {(error as Error)?.message || 'Could not connect to API.'}
+                </p>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -71,7 +85,7 @@ export default function Analytics() {
                             <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                             <Scatter data={MOCK_CLUSTERS} name="Patients">
                                 {MOCK_CLUSTERS.map((entry, idx) => (
-                                    <Cell key={idx} fill={CLUSTER_COLORS[entry.cluster]} fillOpacity={0.8} />
+                                    <Cell key={`cluster-${idx}-${entry.cluster}`} fill={CLUSTER_COLORS[entry.cluster]} fillOpacity={0.8} />
                                 ))}
                             </Scatter>
                         </ScatterChart>
@@ -122,7 +136,7 @@ export default function Analytics() {
                         <PieChart width={120} height={80}>
                             <Pie data={RISK_DIST} dataKey="pct" cx={60} cy={40} innerRadius={24} outerRadius={38} paddingAngle={2} startAngle={90} endAngle={-270}>
                                 {RISK_DIST.map((entry, i) => (
-                                    <Cell key={i} fill={entry.color} />
+                                    <Cell key={`risk-${entry.label}`} fill={entry.color} />
                                 ))}
                             </Pie>
                         </PieChart>
@@ -142,8 +156,8 @@ export default function Analytics() {
                         <YAxis type="category" dataKey="feature" width={160} tick={{ fill: '#f0f4f8', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [v.toFixed(3), 'Importance']} />
                         <Bar dataKey="importance" radius={[0, 6, 6, 0]}>
-                            {TOP_FEATURES.map((_, i) => (
-                                <Cell key={i} fill={['#ef4444', '#eab308', '#a855f7', '#ef4444', '#3b82f6', '#a855f7'][i]} />
+                            {TOP_FEATURES.map((feature, i) => (
+                                <Cell key={`feature-${feature.feature}`} fill={['#ef4444', '#eab308', '#a855f7', '#ef4444', '#3b82f6', '#a855f7'][i]} />
                             ))}
                         </Bar>
                     </BarChart>

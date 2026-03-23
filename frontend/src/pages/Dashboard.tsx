@@ -113,9 +113,10 @@ function StatusDot({ color }: { color: string }) {
 }
 
 export default function Dashboard() {
-    const { data: summary } = useQuery({
+    const { data: summary, isLoading, isError, error } = useQuery({
         queryKey: ['analytics-summary'],
         queryFn: () => analyticsAPI.summary().then((r) => r.data),
+        retry: 2,
     })
 
     const total = summary?.total_predictions ?? 0
@@ -128,6 +129,19 @@ export default function Dashboard() {
         { name: 'Breast Cancer', icon: '⬟', key: 'cancer', color: '#a855f7', preds: breakdown.cancer ?? 0, auc: '100%', dataset: '569 rows' },
         { name: 'Kidney Disease', icon: '⬠', key: 'kidney', color: '#3b82f6', preds: breakdown.kidney ?? 0, auc: '93%', dataset: '400 rows' },
     ]
+
+    // Show error state if API call failed
+    if (isError) {
+        return (
+            <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⚠️</div>
+                <h2 style={{ color: '#ef4444', marginBottom: '8px' }}>Failed to load dashboard</h2>
+                <p style={{ color: '#8b9ab5' }}>
+                    {(error as Error)?.message || 'Could not connect to API. Please check that the backend is running.'}
+                </p>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -220,8 +234,8 @@ export default function Dashboard() {
                             <YAxis type="category" dataKey="name" width={70} tick={{ fill: '#f0f4f8', fontSize: 12 }} axisLine={false} tickLine={false} />
                             <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${v}%`, 'AUC-PR']} />
                             <Bar dataKey="auc" radius={[0, 6, 6, 0]}>
-                                {MODEL_ACCURACY.map((_, i) => (
-                                    <Cell key={i} fill={['#ef4444', '#a855f7', '#eab308', '#3b82f6'][i]} />
+                                {MODEL_ACCURACY.map((model, i) => (
+                                    <Cell key={`model-${model.name}`} fill={['#ef4444', '#a855f7', '#eab308', '#3b82f6'][i]} />
                                 ))}
                             </Bar>
                         </BarChart>
