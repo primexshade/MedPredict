@@ -28,7 +28,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str  # Using str instead of EmailStr to allow .local domains in dev
     password: str
 
 
@@ -54,7 +54,7 @@ async def _create_default_admin_if_missing(db: AsyncSession) -> None:
     result = await db.execute(select(User).limit(1))
     if result.scalar_one_or_none() is None:
         admin = User(
-            email="admin@medpredict.local",
+            email="admin@medpredict.com",
             hashed_password=hash_password("changeme123"),
             role="admin",
             full_name="System Administrator",
@@ -62,7 +62,7 @@ async def _create_default_admin_if_missing(db: AsyncSession) -> None:
         )
         db.add(admin)
         await db.commit()
-        logger.info("Created default admin user: admin@medpredict.local")
+        logger.info("Created default admin user: admin@medpredict.com")
 
 
 @router.post("/login", response_model=LoginResponse)

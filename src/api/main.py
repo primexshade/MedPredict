@@ -29,9 +29,16 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Application lifespan: runs at startup and shutdown.
-    Preloads ML models into memory to avoid cold-start latency on first request.
+    Creates database tables and preloads ML models into memory.
     """
     logger.info("event", message="Starting Disease Prediction API", env=settings.environment)
+
+    # Create database tables (for SQLite or first-run)
+    from src.db.session import engine
+    from src.db.models import Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("event", message="Database tables ready")
 
     # Preload prediction engine (lazy model loading from MLflow registry)
     from src.api.routers.predict import prediction_engine

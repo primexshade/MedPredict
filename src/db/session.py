@@ -1,7 +1,7 @@
 """
 src/db/session.py — Async SQLAlchemy session factory.
 
-Uses asyncpg driver for maximum Postgres throughput.
+Supports both PostgreSQL (asyncpg) and SQLite (aiosqlite) drivers.
 Provides get_db() FastAPI dependency for connection-per-request pattern.
 """
 from __future__ import annotations
@@ -16,18 +16,37 @@ from src.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# Convert postgresql:// → postgresql+asyncpg:// for async driver
-_async_url = str(settings.database_url).replace(
-    "postgresql://", "postgresql+asyncpg://", 1
-)
+# Determine the async URL based on database type
+_db_url = str(settings.database_url)
 
-engine = create_async_engine(
-    _async_url,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,       # Detect stale connections before use
-    echo=not settings.is_production,
-)
+if _db_url.startswith("postgresql://"):
+    # Convert postgresql:// → postgresql+asyncpg:// for async driver
+    _async_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif _db_url.startswith("sqlite://"):
+    # Convert sqlite:// → sqlite+aiosqlite:// for async driver
+    _async_url = _db_url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+else:
+    # Already has async driver specified
+    _async_url = _db_url
+
+# SQLite-specific settings
+_is_sqlite = "sqlite" in _async_url
+_engine_kwargs = {
+    "echo": not settings.is_production,
+}
+
+if not _is_sqlite:
+    # PostgreSQL-specific pool settings
+    _engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_pre_ping": True,
+    })
+else:
+    # SQLite requires connect_args for async
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_async_engine(_async_url, **_engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
