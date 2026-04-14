@@ -43,6 +43,14 @@ env/
 *.sublime-project
 *.sublime-workspace
 
+# ── AI Assistant Files ────────────────────────────────────────────────────────
+claude.md
+.claude/
+.gemini/
+copilot/
+.cursor/
+.aider*
+
 # ── OS Files ──────────────────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
@@ -51,7 +59,6 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
-*.bak
 
 # ── Testing ───────────────────────────────────────────────────────────────────
 .pytest_cache/
@@ -76,7 +83,6 @@ secrets.json
 *.db
 *.sqlite
 *.sqlite3
-medpredict.db
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
@@ -129,9 +135,11 @@ temp/
 
 # ── Data Files (keep structure, ignore large data) ───────────────────────────
 data/raw/*.csv
+data/raw/*.csv.bak
 data/raw/*.parquet
 data/processed/*.csv
 data/processed/*.parquet
+data/sample/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
