@@ -17,7 +17,7 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: medpredict-db
-          property: connectionURI
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: MLFLOW_TRACKING_URI
