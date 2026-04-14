@@ -73,7 +73,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `docs/SECURITY.md` — security policies and vulnerability reporting
 - `docs/RUNBOOK.md` — operational runbook for on-call engineers
 - `docs/ARCHITECTURE.md` — system architecture deep-dive
-- `docs/{model_cards}/` — per-disease ML model cards
+- `docs/model_cards/` — per-disease ML model cards
 - `README.md` — project overview and quick-start
 
 #### Data

@@ -50,6 +50,7 @@ claude.md
 copilot/
 .cursor/
 .aider*
+runtime.txt
 
 # ── OS Files ──────────────────────────────────────────────────────────────────
 .DS_Store

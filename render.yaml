@@ -1,11 +1,13 @@
-# Render Blueprint - Backend Deployment
+# Render Blueprint — MedPredict Backend Deployment
 # https://render.com/docs/blueprint-spec
+# Deploy: Connect GitHub repo → Render Dashboard → "New Blueprint"
 
 services:
   - type: web
     name: medpredict-api
     runtime: python
     plan: free
+    region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
@@ -13,16 +15,23 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        sync: false  # Set manually in dashboard
+        fromDatabase:
+          name: medpredict-db
+          property: connectionURI
       - key: JWT_SECRET
         generateValue: true
+      - key: MLFLOW_TRACKING_URI
+        value: file:///opt/render/project/src/mlruns
       - key: CORS_ORIGINS
-        value: '["https://medpredict.vercel.app"]'
+        value: '["https://primexshade.github.io"]'
       - key: REDIS_URL
-        sync: false  # Optional, set if using Redis
+        value: ""
+      - key: PYTHON_VERSION
+        value: "3.11.11"
 
 databases:
   - name: medpredict-db
     plan: free
     databaseName: medpredict
     user: medpredict_user
+    region: oregon

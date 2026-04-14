@@ -13,10 +13,15 @@ export const onAuthLogout = (callback: () => void) => {
     return () => window.removeEventListener(AUTH_LOGOUT_EVENT, callback)
 }
 
-// ── Axios Instance ────────────────────────────────────────────────────────────
+// In dev, Vite proxy handles /api → localhost:8000
+// In production (GitHub Pages), VITE_API_URL points to the Render backend
+const API_BASE = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/v1`
+    : '/api/v1'
+
 export const api = axios.create({
-    baseURL: '/api/v1',
-    timeout: 15_000,
+    baseURL: API_BASE,
+    timeout: 30_000,
     headers: { 'Content-Type': 'application/json' },
 })
 
